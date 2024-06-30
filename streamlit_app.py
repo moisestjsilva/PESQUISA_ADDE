@@ -1,15 +1,7 @@
 import streamlit as st
 from docx import Document
 from PIL import Image
-import tkinter as tk
-from tkinter import filedialog
-
-def select_directory():
-    root = tk.Tk()
-    root.withdraw()  # Oculta a janela principal do tkinter
-    directory = filedialog.askdirectory()
-    root.destroy()
-    return directory
+import os
 
 def main():
     st.title('Aplicativo para Juntar Imagens em Documento DOC')
@@ -20,18 +12,13 @@ def main():
     # Interface para nomear o arquivo DOC
     doc_name = st.text_input("Nome do arquivo DOC", "meu_documento")
 
-    if st.button("Selecionar Diretório para Salvar"):
-        directory = select_directory()
-        if directory:
-            st.success(f'Diretório selecionado: {directory}')
-        else:
-            st.error('Nenhum diretório selecionado.')
+    # Interface para selecionar o diretório de destino
+    directory = st.text_input("Caminho do diretório para salvar o documento", "/path/to/save")
 
     if st.button("Criar Documento DOC"):
         if uploaded_files:
-            directory = select_directory()
-            if not directory:
-                st.error('Por favor, selecione um diretório para salvar o documento.')
+            if not os.path.isdir(directory):
+                st.error('O caminho do diretório fornecido não é válido. Por favor, insira um caminho válido.')
                 return
 
             doc = Document()
@@ -100,7 +87,7 @@ def main():
                     add_images_to_document(doc, current_line_images)
 
             # Salva o documento
-            doc_path = f"{directory}/{doc_name}.docx"
+            doc_path = os.path.join(directory, f"{doc_name}.docx")
             doc.save(doc_path)
             st.success(f"Documento {doc_path} criado com sucesso!")
 
