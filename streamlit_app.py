@@ -1,119 +1,94 @@
 import streamlit as st
-import pandas as pd
+from docx import Document
+from PIL import Image
 
+def main():
+    st.title('Aplicativo para Juntar Imagens em Documento DOC')
 
-st.title("📊 Data evaluation app")
+    # Interface para upload de imagens
+    uploaded_files = st.file_uploader("Selecione as imagens que deseja juntar", type=['jpg', 'png'], accept_multiple_files=True)
 
-st.write(
-    "We are so glad to see you here. ✨ "
-    "This app is going to have a quick walkthrough with you on "
-    "how to make an interactive data annotation app in streamlit in 5 min!"
-)
+    # Interface para nomear o arquivo DOC
+    doc_name = st.text_input("Nome do arquivo DOC", "meu_documento")
 
-st.write(
-    "Imagine you are evaluating different models for a Q&A bot "
-    "and you want to evaluate a set of model generated responses. "
-    "You have collected some user data. "
-    "Here is a sample question and response set."
-)
+    if st.button("Criar Documento DOC"):
+        if uploaded_files:
+            doc = Document()
 
-data = {
-    "Questions": [
-        "Who invented the internet?",
-        "What causes the Northern Lights?",
-        "Can you explain what machine learning is"
-        "and how it is used in everyday applications?",
-        "How do penguins fly?",
-    ],
-    "Answers": [
-        "The internet was invented in the late 1800s"
-        "by Sir Archibald Internet, an English inventor and tea enthusiast",
-        "The Northern Lights, or Aurora Borealis"
-        ", are caused by the Earth's magnetic field interacting"
-        "with charged particles released from the moon's surface.",
-        "Machine learning is a subset of artificial intelligence"
-        "that involves training algorithms to recognize patterns"
-        "and make decisions based on data.",
-        " Penguins are unique among birds because they can fly underwater. "
-        "Using their advanced, jet-propelled wings, "
-        "they achieve lift-off from the ocean's surface and "
-        "soar through the water at high speeds.",
-    ],
-}
+            # Definir margens mínimas (em polegadas)
+            margin_top = 0.5  # 0.5 polegadas
+            margin_bottom = 0.5  # 0.5 polegadas
+            margin_left = 0.5  # 0.5 polegadas
+            margin_right = 0.5  # 0.5 polegadas
 
-df = pd.DataFrame(data)
+            # Converter polegadas para pontos (1 polegada = 72 pontos)
+            margin_top_in_points = int(margin_top * 72)
+            margin_bottom_in_points = int(margin_bottom * 72)
+            margin_left_in_points = int(margin_left * 72)
+            margin_right_in_points = int(margin_right * 72)
 
-st.write(df)
+            # Configurar as margens do documento
+            sections = doc.sections
+            for section in sections:
+                section.top_margin = margin_top_in_points
+                section.bottom_margin = margin_bottom_in_points
+                section.left_margin = margin_left_in_points
+                section.right_margin = margin_right_in_points
 
-st.write(
-    "Now I want to evaluate the responses from my model. "
-    "One way to achieve this is to use the very powerful `st.data_editor` feature. "
-    "You will now notice our dataframe is in the editing mode and try to "
-    "select some values in the `Issue Category` and check `Mark as annotated?` once finished 👇"
-)
+            # Calcular largura e altura máximas disponíveis no documento
+            max_width = doc.sections[0].page_width - margin_left_in_points - margin_right_in_points
+            max_height = doc.sections[0].page_height - margin_top_in_points - margin_bottom_in_points
 
-df["Issue"] = [True, True, True, False]
-df["Category"] = ["Accuracy", "Accuracy", "Completeness", ""]
+            # Inicializa a largura e altura total das imagens na página
+            total_width_on_page = 0
+            total_height_on_page = 0
 
-new_df = st.data_editor(
-    df,
-    column_config={
-        "Questions": st.column_config.TextColumn(width="medium", disabled=True),
-        "Answers": st.column_config.TextColumn(width="medium", disabled=True),
-        "Issue": st.column_config.CheckboxColumn("Mark as annotated?", default=False),
-        "Category": st.column_config.SelectboxColumn(
-            "Issue Category",
-            help="select the category",
-            options=["Accuracy", "Relevance", "Coherence", "Bias", "Completeness"],
-            required=False,
-        ),
-    },
-)
+            # Lista para armazenar imagens na linha atual
+            current_line_images = []
 
-st.write(
-    "You will notice that we changed our dataframe and added new data. "
-    "Now it is time to visualize what we have annotated!"
-)
+            for idx, file in enumerate(uploaded_files):
+                # Abre a imagem e obtém suas dimensões
+                img = Image.open(file)
+                width, height = img.size
 
-st.divider()
+                # Calcula a proporção da imagem
+                aspect_ratio = width / height
 
-st.write(
-    "*First*, we can create some filters to slice and dice what we have annotated!"
-)
+                # Calcula a nova largura e altura da imagem para ajustar ao documento
+                new_width = max_width
+                new_height = int(new_width / aspect_ratio)
 
-col1, col2 = st.columns([1, 1])
-with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options=new_df.Issue.unique())
-with col2:
-    category_filter = st.selectbox(
-        "Choose a category",
-        options=new_df[new_df["Issue"] == issue_filter].Category.unique(),
-    )
+                # Verifica se a imagem cabe na linha atual da página
+                if total_height_on_page + new_height <= max_height:
+                    # Adiciona a imagem à linha atual
+                    current_line_images.append((file, new_width, new_height))
+                    total_width_on_page = max(total_width_on_page, new_width)
+                    total_height_on_page += new_height
+                else:
+                    # Se não couber, adiciona uma nova linha de imagens
+                    add_images_to_document(doc, current_line_images)
+                    doc.add_page_break()
 
-st.dataframe(
-    new_df[(new_df["Issue"] == issue_filter) & (new_df["Category"] == category_filter)]
-)
+                    # Reinicializa para uma nova linha de imagens
+                    current_line_images = [(file, new_width, new_height)]
+                    total_width_on_page = new_width
+                    total_height_on_page = new_height
 
-st.markdown("")
-st.write(
-    "*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`"
-)
+                # Se for a última imagem, adiciona à linha atual
+                if idx == len(uploaded_files) - 1:
+                    add_images_to_document(doc, current_line_images)
 
-issue_cnt = len(new_df[new_df["Issue"] == True])
-total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+            # Salva o documento
+            doc.save(f"{doc_name}.docx")
+            st.success(f"Documento {doc_name}.docx criado com sucesso!")
 
-col1, col2 = st.columns([1, 1])
-with col1:
-    st.metric("Number of responses", issue_cnt)
-with col2:
-    st.metric("Annotation Progress", issue_perc)
+def add_images_to_document(doc, images):
+    # Adiciona todas as imagens na lista à linha atual do documento
+    for file, width, height in images:
+        doc.add_picture(file, width=width, height=height)
+        # Adiciona espaço entre imagens (opcional)
+        doc.paragraphs[-1].runs[-1].add_break()
 
-df_plot = new_df[new_df["Category"] != ""].Category.value_counts().reset_index()
-
-st.bar_chart(df_plot, x="Category", y="count")
-
-st.write(
-    "Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:"
-)
+if __name__ == '__main__':
+    main()
 
