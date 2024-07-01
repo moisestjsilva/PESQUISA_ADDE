@@ -104,7 +104,7 @@ def main():
             # Reiniciar a aplicação após a criação do documento
             st.session_state.uploaded_files = None
             st.session_state.doc_name = "Digite aqui o nome do documento"
-            st.experimental_rerun()
+            st.rerun()
 
 def add_images_to_document(doc, images):
     # Adiciona todas as imagens na lista à linha atual do documento
