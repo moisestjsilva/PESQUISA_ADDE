@@ -2,7 +2,6 @@ import streamlit as st
 from docx import Document
 from PIL import Image
 import tempfile
-import os
 
 def main():
     st.title('Imagens para Documento MNH')
@@ -80,19 +79,23 @@ def main():
                 if idx == len(uploaded_files) - 1:
                     add_images_to_document(doc, current_line_images)
 
-            # Salva o documento
-            doc_path = f"{doc_name}.docx"
-            doc.save(doc_path)
+            # Salva o documento temporariamente
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_file:
+                doc_path = tmp_file.name
+                doc.save(doc_path)
 
-            st.success(f"Documento {doc_name}.docx criado com sucesso!")
-            
-            # Remove o arquivo de upload para reiniciar o estado
-            for file in uploaded_files:
-                if os.path.exists(file.name):
-                    os.remove(file.name)
+            # Cria um botão de download para o arquivo DOC
+            with open(doc_path, "rb") as file:
+                st.download_button(
+                    label="Baixar Documento",
+                    data=file,
+                    file_name=f"{doc_name}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
 
-            # Reinicia a aplicação
-            st.rerun()
+            # Remove o arquivo temporário e reinicia a aplicação
+            os.remove(doc_path)
+            st.experimental_rerun()
 
 def add_images_to_document(doc, images):
     # Adiciona todas as imagens na lista à linha atual do documento
