@@ -2,6 +2,7 @@ import streamlit as st
 from docx import Document
 from PIL import Image
 import tempfile
+import os
 
 def main():
     st.title('Imagens para Documento MNH')
@@ -93,9 +94,10 @@ def main():
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
 
-            # Remove o arquivo temporário e reinicia a aplicação
-            os.remove(doc_path)
-            st.experimental_rerun()
+            # Aguarda o download ser concluído antes de remover o arquivo temporário
+            if st.button("Limpar"):
+                os.remove(doc_path)
+                st.experimental_rerun()
 
 def add_images_to_document(doc, images):
     # Adiciona todas as imagens na lista à linha atual do documento
