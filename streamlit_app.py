@@ -2,6 +2,7 @@ import streamlit as st
 from docx import Document
 from PIL import Image
 import tempfile
+import os
 
 def main():
     st.title('Aplicativo para Juntar Imagens em Documento DOC')
@@ -94,6 +95,9 @@ def main():
                 )
 
             st.success(f"Documento {doc_name}.docx criado com sucesso!")
+
+            # Reiniciar a aplicação
+            st.experimental_rerun()
 
 def add_images_to_document(doc, images):
     # Adiciona todas as imagens na lista à linha atual do documento
