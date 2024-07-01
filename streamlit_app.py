@@ -4,7 +4,7 @@ from PIL import Image
 import tempfile
 
 def main():
-    st.title('Aplicativo para Juntar Imagens em Documento DOC')
+    st.title('Aplicativo para Juntar Imagens em Documento')
 
     # Definir o estado da sessão para controlar o upload de arquivos e nome do documento
     if 'uploaded_files' not in st.session_state:
@@ -18,7 +18,7 @@ def main():
     # Interface para nomear o arquivo DOC
     st.session_state.doc_name = st.text_input("Nome do arquivo", "meu_documento")
 
-    if st.button("Criar Documento DOC"):
+    if st.button("Criar Documento"):
         if st.session_state.uploaded_files:
             doc = Document()
 
