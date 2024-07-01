@@ -2,10 +2,9 @@ import streamlit as st
 from docx import Document
 from PIL import Image
 import tempfile
-import os
 
 def main():
-    st.title('Imagens para Documento MNH')
+    st.title('Aplicativo para Juntar Imagens em Documento DOC')
 
     # Interface para upload de imagens
     uploaded_files = st.file_uploader("Selecione as imagens que deseja juntar", type=['jpg', 'png'], accept_multiple_files=True)
@@ -13,7 +12,7 @@ def main():
     # Interface para nomear o arquivo DOC
     doc_name = st.text_input("Nome do arquivo DOC", "meu_documento")
 
-    if st.button("Criar Documento"):
+    if st.button("Criar Documento DOC"):
         if uploaded_files:
             doc = Document()
 
@@ -80,19 +79,21 @@ def main():
                 if idx == len(uploaded_files) - 1:
                     add_images_to_document(doc, current_line_images)
 
-            # Salva o documento
-            doc_path = f"{doc_name}.docx"
-            doc.save(doc_path)
+            # Salva o documento temporariamente
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_file:
+                doc_path = tmp_file.name
+                doc.save(doc_path)
+
+            # Cria um botão de download para o arquivo DOC
+            with open(doc_path, "rb") as file:
+                st.download_button(
+                    label="Baixar Documento DOC",
+                    data=file,
+                    file_name=f"{doc_name}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
 
             st.success(f"Documento {doc_name}.docx criado com sucesso!")
-            
-            # Remove o arquivo de upload para reiniciar o estado
-            for file in uploaded_files:
-                if os.path.exists(file.name):
-                    os.remove(file.name)
-
-            # Reinicia a aplicação
-            st.rerun()
 
 def add_images_to_document(doc, images):
     # Adiciona todas as imagens na lista à linha atual do documento
