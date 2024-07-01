@@ -92,7 +92,7 @@ def main():
                     os.remove(file.name)
 
             # Reinicia a aplicação
-            st.experimental_rerun()
+            st.rerun()
 
 def add_images_to_document(doc, images):
     # Adiciona todas as imagens na lista à linha atual do documento
