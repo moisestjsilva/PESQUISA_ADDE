@@ -21,6 +21,7 @@ def main():
     if st.button("Limpar"):
         uploaded_files.clear()
         doc_name = "meu_documento"
+        st.success("Seleção de imagens limpa.")
 
     # Mostra as imagens selecionadas
     if uploaded_files:
