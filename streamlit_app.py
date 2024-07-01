@@ -6,14 +6,20 @@ import tempfile
 def main():
     st.title('Aplicativo para Juntar Imagens em Documento DOC')
 
+    # Definir o estado da sessão para controlar o upload de arquivos e nome do documento
+    if 'uploaded_files' not in st.session_state:
+        st.session_state.uploaded_files = None
+    if 'doc_name' not in st.session_state:
+        st.session_state.doc_name = "Digite aqui o nome do documento"
+
     # Interface para upload de imagens
-    uploaded_files = st.file_uploader("Selecione as imagens que deseja juntar", type=['jpg', 'png'], accept_multiple_files=True)
+    st.session_state.uploaded_files = st.file_uploader("Selecione as imagens que deseja juntar", type=['jpg', 'png'], accept_multiple_files=True)
 
     # Interface para nomear o arquivo DOC
-    doc_name = st.text_input("Nome do arquivo DOC", "meu_documento")
+    st.session_state.doc_name = st.text_input("Nome do arquivo", "meu_documento")
 
     if st.button("Criar Documento DOC"):
-        if uploaded_files:
+        if st.session_state.uploaded_files:
             doc = Document()
 
             # Definir margens mínimas (em polegadas)
@@ -47,7 +53,7 @@ def main():
             # Lista para armazenar imagens na linha atual
             current_line_images = []
 
-            for idx, file in enumerate(uploaded_files):
+            for idx, file in enumerate(st.session_state.uploaded_files):
                 # Abre a imagem e obtém suas dimensões
                 img = Image.open(file)
                 width, height = img.size
@@ -76,7 +82,7 @@ def main():
                     total_height_on_page = new_height
 
                 # Se for a última imagem, adiciona à linha atual
-                if idx == len(uploaded_files) - 1:
+                if idx == len(st.session_state.uploaded_files) - 1:
                     add_images_to_document(doc, current_line_images)
 
             # Salva o documento temporariamente
@@ -89,14 +95,16 @@ def main():
                 st.download_button(
                     label="Baixar Documento DOC",
                     data=file,
-                    file_name=f"{doc_name}.docx",
+                    file_name=f"{st.session_state.doc_name}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
 
-            st.success(f"Documento {doc_name}.docx criado com sucesso!")
+            st.success(f"Documento {st.session_state.doc_name}.docx criado com sucesso!")
 
-            # Reiniciar a aplicação
-            st.rerun()
+            # Reiniciar a aplicação após a criação do documento
+            st.session_state.uploaded_files = None
+            st.session_state.doc_name = "Digite aqui o nome do documento"
+            st.experimental_rerun()
 
 def add_images_to_document(doc, images):
     # Adiciona todas as imagens na lista à linha atual do documento
