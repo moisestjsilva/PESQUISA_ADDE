@@ -86,16 +86,15 @@ def main():
                 doc.save(doc_path)
 
             # Cria um botão de download para o arquivo DOC
-            with open(doc_path, "rb") as file:
-                st.download_button(
-                    label="Baixar Documento",
-                    data=file,
-                    file_name=f"{doc_name}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
-
-            # Aguarda o download ser concluído antes de remover o arquivo temporário
-            if st.button("Limpar"):
+            if st.button("Baixar Documento"):
+                with open(doc_path, "rb") as file:
+                    st.download_button(
+                        label="Baixar Documento",
+                        data=file,
+                        file_name=f"{doc_name}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+                # Remove o arquivo temporário e reinicia a aplicação
                 os.remove(doc_path)
                 st.experimental_rerun()
 
