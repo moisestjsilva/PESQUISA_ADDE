@@ -4,7 +4,7 @@ from PIL import Image
 import tempfile
 
 def main():
-    st.title('Aplicativo para Juntar Imagens em Documento DOC')
+    st.title('Imagens para Documento MNH')  # Alterado o título
 
     # Interface para upload de imagens
     uploaded_files = st.file_uploader("Selecione as imagens que deseja juntar", type=['jpg', 'png'], accept_multiple_files=True)
@@ -12,7 +12,7 @@ def main():
     # Interface para nomear o arquivo DOC
     doc_name = st.text_input("Nome do arquivo DOC", "meu_documento")
 
-    if st.button("Criar Documento DOC"):
+    if st.button("Criar Documento"):  # Alterado o nome do botão
         if uploaded_files:
             doc = Document()
 
