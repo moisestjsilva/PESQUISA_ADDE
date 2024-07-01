@@ -2,7 +2,7 @@ import streamlit as st
 from docx import Document
 from PIL import Image
 import tempfile
-import os
+import os  # Adicionando a importação do módulo os
 
 def main():
     st.title('Imagens para Documento MNH')
